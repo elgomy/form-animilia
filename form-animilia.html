@@ -1,0 +1,146 @@
+<link rel="import" href="../polymer/polymer.html">
+<link rel="import" href="../polymerfire/firebase-app.html">
+<link rel="import" href="../polymerfire/firebase-auth.html">
+<link rel="import" href="../polymerfire/firebase-document.html">
+<link rel="import" href="../polymerfire/firebase-query.html">
+<link rel="import" href="../paper-button/paper-button.html">
+<link rel="import" href="../paper-input/paper-input.html">
+<link rel="import" href="../paper-input/paper-textarea.html">
+<!--
+`form-animilia`
+formulario de entrada de denuncias de maltrato animal
+
+@demo demo/index.html 
+-->
+
+<dom-module id="form-animilia">
+  <template>
+    <style>
+      :host {
+        display: block;
+      }
+    </style>
+    
+    <firebase-app 
+            auth-domain="form-polymerfire.firebaseapp.com"
+            database-url="https://form-polymerfire.firebaseio.com"
+            api-key="AIzaSyCqn8S15HxxOj3-racdBVhRozgeFUYdFww"
+            name="form-polymerfire">
+    </firebase-app>
+
+    <firebase-auth 
+            app-name="form-polymerfire"
+            id="auth" 
+            user="{{user}}" 
+            provider="google" 
+            on-error="handleError"
+            signed-in="{{logueado}}">
+    </firebase-auth>
+
+
+
+    <paper-button raised on-tap="login" hidden="{{logueado}}">login</paper-button>
+    <paper-button raised on-tap="logout" hidden="{{!logueado}}">logout</paper-button>
+
+   
+
+
+        <firebase-query
+            id="query"
+            app-name="form-polymerfire"
+            path="/denuncias/[[user.uid]]"
+            data="[[data]]">
+        </firebase-query>
+
+
+    <paper-input id="idInput" label="identificador"></paper-input>
+    <paper-input id="placeInput" label="lugar"></paper-input>
+    <paper-textarea 
+                id="textInput" 
+                label="Relato do que você presenciou"
+                rows="2"
+                required
+                on-blur="validate"
+                on-keydown="validateNull"
+                error-message="necessário relatar a denúncia">
+                  
+    </paper-textarea>
+    <paper-button id="saveButton" raised>guardar</paper-button>
+
+
+  </template>
+
+  <script>
+    Polymer({
+
+      is: 'form-animilia',
+
+      properties: {
+          user:Object,
+          logueado: Boolean,
+          
+      },
+
+      listeners:{
+         'saveButton.tap': 'save',
+         
+     },
+
+      login:function(){
+        this.$.auth.signInWithPopup().then(function(response){
+          this.saveProfile(response.user)
+        }.bind(this))
+
+      },
+
+      saveProfile:function(user){
+          console.log(user);
+          this.fbapp.database().ref('/usuarios/' + user.uid).set({
+                  nombre: user.displayName,
+                  email: user.email
+
+          })
+      },
+
+      logout:function(){
+        this.$.auth.signOut().
+        then(function(){
+          console.log('usuario deslogado')
+        })
+      },
+      // método para guardar los datos de la denuncia en Firebase
+      save:function(){
+        var date = new Date;
+        var complaint = {
+          identificador: this.$.idInput.value,
+          lugar: this.$.placeInput.value,
+          fecha: date.getDate() + '/' + (date.getMonth()+1) + '/' + date.getFullYear(),
+          descripcion: this.$.textInput.value
+
+        };
+        // al clickar en el botón 'guardar' se lanza el mètodo validate()
+        this.$.textInput.validate();
+        // sube los datos de la denuncia a Firebase
+        this.$.query.ref.push(complaint);
+    
+        
+        // después de introducir los valores en los input se limpia el texto
+        this.$.idInput.value = null;
+        this.$.placeInput.value = null;
+        this.$.textInput.value = null;   
+
+      },
+
+      // método que valida si los datos en el input son correctos. Lanzamos este método cuando clickamos en el botón 'guardar' y cuando quitamos el foco del input (on-blur). Se muestra el mensaje contenido en la propiedad error-message
+      validate:function() {
+      this.$.textInput.validate();
+      },
+      // con este método excluimos el mensaje de error del método validate(). Se lanza cuando comenzamos a escribir dentro del input (on-keydown)
+      validateNull:function(){
+      this.$.textInput.invalid = null
+      }
+
+   
+    });
+  </script>
+</dom-module>
