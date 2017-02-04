@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 # \<form-animilia\>
 
 formulario de entrada de denuncias de maltrato animal
@@ -36,3 +37,6 @@ $ polymer test
 ```
 
 Your application is already set up to be tested via [web-component-tester](https://github.com/Polymer/web-component-tester). Run `polymer test` to run your application's test suite locally.
+=======
+# form-animilia
+>>>>>>> 6ca66fd69a16b4cbf506e28096ea6ae43a2f5a44

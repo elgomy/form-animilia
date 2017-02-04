@@ -6,6 +6,7 @@
 <link rel="import" href="../paper-button/paper-button.html">
 <link rel="import" href="../paper-input/paper-input.html">
 <link rel="import" href="../paper-input/paper-textarea.html">
+<link rel="import" href="/animilia-behavior.html">
 <!--
 `form-animilia`
 formulario de entrada de denuncias de maltrato animal
@@ -28,6 +29,7 @@ formulario de entrada de denuncias de maltrato animal
             name="form-polymerfire">
     </firebase-app>
 
+<!-- sistema de login -->
     <firebase-auth 
             app-name="form-polymerfire"
             id="auth" 
@@ -37,35 +39,53 @@ formulario de entrada de denuncias de maltrato animal
             signed-in="{{logueado}}">
     </firebase-auth>
 
-
-
     <paper-button raised on-tap="login" hidden="{{logueado}}">login</paper-button>
     <paper-button raised on-tap="logout" hidden="{{!logueado}}">logout</paper-button>
 
-   
+  
+<!-- sistema de entrada de datos para generar la denuncia -->
+
+    <paper-input 
+          id="idInput" 
+          label="identificador"
+          required
+          on-keydown="validateNull"
+          error-message="necessário incluir um identificador"
+          value="{{identificador}}">          
+    </paper-input>
+
+    <paper-input 
+          id="placeInput" 
+          label="lugar"
+          required
+          on-keydown="validateNull"
+          error-message="necessário incluir um lugar"
+          value="{{lugar}}">
+    </paper-input>
+
+    <paper-textarea 
+          id="textInput" 
+          label="Relato do que você presenciou"
+          rows="2"
+          required   
+          on-keydown="validateNull"
+          error-message="necessário relatar a denúncia"
+          value="{{descripcion}}">                
+    </paper-textarea>
 
 
-        <firebase-query
+
+    <paper-button id="saveButton" raised>guardar</paper-button>
+     
+
+
+         <firebase-query
             id="query"
             app-name="form-polymerfire"
-            path="/denuncias/[[user.uid]]"
-            data="[[data]]">
+            path="/denuncias/[[user.uid]]">
         </firebase-query>
 
-
-    <paper-input id="idInput" label="identificador"></paper-input>
-    <paper-input id="placeInput" label="lugar"></paper-input>
-    <paper-textarea 
-                id="textInput" 
-                label="Relato do que você presenciou"
-                rows="2"
-                required
-                on-blur="validate"
-                on-keydown="validateNull"
-                error-message="necessário relatar a denúncia">
-                  
-    </paper-textarea>
-    <paper-button id="saveButton" raised>guardar</paper-button>
+       
 
 
   </template>
@@ -78,13 +98,37 @@ formulario de entrada de denuncias de maltrato animal
       properties: {
           user:Object,
           logueado: Boolean,
-          
+          data:Object,
+
+          lugar:{
+            type:String,
+            notify: true,
+            value: ''
+          },
+
+          identificador:{
+            type:String,
+            notify: true,
+            value: ''
+          },
+          fecha:{
+            type:String,
+            value: new Date().toLocaleString()
+                 
+        }
+
+       
       },
+
+      behaviors: [Polymer.AnimiliaBehavior],
 
       listeners:{
          'saveButton.tap': 'save',
          
      },
+
+    
+     
 
       login:function(){
         this.$.auth.signInWithPopup().then(function(response){
@@ -110,35 +154,40 @@ formulario de entrada de denuncias de maltrato animal
       },
       // método para guardar los datos de la denuncia en Firebase
       save:function(){
-        var date = new Date;
-        var complaint = {
-          identificador: this.$.idInput.value,
-          lugar: this.$.placeInput.value,
-          fecha: date.getDate() + '/' + (date.getMonth()+1) + '/' + date.getFullYear(),
-          descripcion: this.$.textInput.value
 
+        var complaint = {          
+          identificador: this.identificador,
+          lugar: this.lugar,
+          fecha: this.fecha,
+          descripcion: this.descripcion,
         };
-        // al clickar en el botón 'guardar' se lanza el mètodo validate()
-        this.$.textInput.validate();
+
+        // al clickar en el botón 'guardar' se lanza el mètodo validator, incluido en el behavior, que valida los inputs
+        var inputs = [this.$.idInput,this.$.placeInput,this.$.textInput];
+      
+        for(var i = 0; i < inputs.length; i++ ){
+          this.validator(inputs[i])
+        };
+    
         // sube los datos de la denuncia a Firebase
         this.$.query.ref.push(complaint);
-    
-        
+           
         // después de introducir los valores en los input se limpia el texto
-        this.$.idInput.value = null;
-        this.$.placeInput.value = null;
-        this.$.textInput.value = null;   
+           this.identificador= null;
+           this.lugar = null;
+           this.descripcion = null;        
 
       },
-
-      // método que valida si los datos en el input son correctos. Lanzamos este método cuando clickamos en el botón 'guardar' y cuando quitamos el foco del input (on-blur). Se muestra el mensaje contenido en la propiedad error-message
-      validate:function() {
-      this.$.textInput.validate();
-      },
+ 
       // con este método excluimos el mensaje de error del método validate(). Se lanza cuando comenzamos a escribir dentro del input (on-keydown)
-      validateNull:function(){
-      this.$.textInput.invalid = null
+        validateNull:function(){
+
+          this.$.idInput.invalid = null;
+          this.$.placeInput.invalid = null;
+          this.$.textInput.invalid = null;
+        
       }
+
 
    
     });
