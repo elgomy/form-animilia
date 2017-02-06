@@ -54,7 +54,7 @@ formulario de entrada de denuncias de maltrato animal
           value="{{identificador}}">          
     </paper-input>
 
-    <paper-input 
+    <paper-input  
           id="placeInput" 
           label="lugar"
           required
@@ -100,24 +100,42 @@ formulario de entrada de denuncias de maltrato animal
           logueado: Boolean,
           data:Object,
 
+          // lugar de la denuncia. Substituiremos esta propiedad por un componente de Google maps
           lugar:{
             type:String,
             notify: true,
             value: ''
           },
-
+          // identificador de la denuncia que servirá para el usuario identificar sus denuncias. Probablemente excluiremos esta propiedad
           identificador:{
             type:String,
             notify: true,
             value: ''
           },
+          // relato de la denuncia
+          descripcion:{
+             type:String,
+            notify: true,
+            value: ''
+          },
+          // fecha de la denuncia, generada automáticamente.
           fecha:{
             type:String,
-            value: new Date().toLocaleString()
-                 
-        }
+            value: new Date().toLocaleString()                 
+          },
+          // denuncia
+          complaint:{
+            type:Object
+                        
+          },
+          // inputs del formulario
+          inputs:{
+            type:Array,
+            value: function(){
+              return [this.$.idInput,this.$.placeInput,this.$.textInput]
+            }
+          }       
 
-       
       },
 
       behaviors: [Polymer.AnimiliaBehavior],
@@ -128,8 +146,6 @@ formulario de entrada de denuncias de maltrato animal
      },
 
     
-     
-
       login:function(){
         this.$.auth.signInWithPopup().then(function(response){
           this.saveProfile(response.user)
@@ -155,39 +171,31 @@ formulario de entrada de denuncias de maltrato animal
       // método para guardar los datos de la denuncia en Firebase
       save:function(){
 
-        var complaint = {          
+         this.complaint = {          
           identificador: this.identificador,
           lugar: this.lugar,
           fecha: this.fecha,
           descripcion: this.descripcion,
         };
+        
 
-        // al clickar en el botón 'guardar' se lanza el mètodo validator, incluido en el behavior, que valida los inputs
-        var inputs = [this.$.idInput,this.$.placeInput,this.$.textInput];
-      
-        for(var i = 0; i < inputs.length; i++ ){
-          this.validator(inputs[i])
-        };
-    
-        // sube los datos de la denuncia a Firebase
-        this.$.query.ref.push(complaint);
-           
-        // después de introducir los valores en los input se limpia el texto
-           this.identificador= null;
-           this.lugar = null;
-           this.descripcion = null;        
+        if(this.identificador,this.lugar,this.descripcion){
+          // sube los datos de la denuncia a Firebase
+          this.$.query.ref.push(this.complaint);
+          // después de introducir los valores en los input se limpia el texto
+          this.identificador = null;
+          this.lugar = null;
+          this.descripcion = null; 
+        }else{
+          // al clickar en el botón 'guardar' se lanza el mètodo validator, incluido en el behavior, que valida los inputs
+          for(var i = 0; i < this.inputs.length; i++ ){
+              this.validator(this.inputs[i])
+           };
+
+        };          
+                 
 
       },
- 
-      // con este método excluimos el mensaje de error del método validate(). Se lanza cuando comenzamos a escribir dentro del input (on-keydown)
-        validateNull:function(){
-
-          this.$.idInput.invalid = null;
-          this.$.placeInput.invalid = null;
-          this.$.textInput.invalid = null;
-        
-      }
-
 
    
     });
