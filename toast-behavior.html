@@ -1,0 +1,15 @@
+ <script>
+ Polymer.toastBehavior = {
+
+ 	positiveFeedback:function(e,message){
+        this.$.positiveToast.open();
+        this.$.positiveToast.text = message;
+      },
+
+
+      negativeFeedback:function(e,message){
+        this.$.negativeToast.open();
+        this.$.negativeToast.text = message;
+      },
+}
+</script>

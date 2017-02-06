@@ -1,25 +1,19 @@
 <script>
 
-	Polymer.AnimiliaBehavior = {
+	Polymer.animiliaBehavior = {
 
 		validator:function(input){
 			return input.validate()
 			},
 
 // con este método excluimos el mensaje de error del método validate(). Se lanza cuando comenzamos a escribir dentro del input (on-keydown)
-    	 validateNull:function(){ 
-        
-       
-
-   	this.inputs[0].invalid = null; 
+    validateNull:function(){       
+   	  this.inputs[0].invalid = null; 
     	this.inputs[1].invalid = null; 
-   	this.inputs[2].invalid = null;    
+   	  this.inputs[2].invalid = null;    
      
       }
-
-      
-		
-      }
+   }
 
       		
 

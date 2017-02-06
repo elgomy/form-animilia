@@ -6,7 +6,9 @@
 <link rel="import" href="../paper-button/paper-button.html">
 <link rel="import" href="../paper-input/paper-input.html">
 <link rel="import" href="../paper-input/paper-textarea.html">
+<link rel="import" href="../paper-toast/paper-toast.html">
 <link rel="import" href="/animilia-behavior.html">
+<link rel="import" href="/toast-behavior.html">
 <!--
 `form-animilia`
 formulario de entrada de denuncias de maltrato animal
@@ -73,20 +75,15 @@ formulario de entrada de denuncias de maltrato animal
           value="{{descripcion}}">                
     </paper-textarea>
 
-
-
     <paper-button id="saveButton" raised>guardar</paper-button>
      
-
-
          <firebase-query
             id="query"
             app-name="form-polymerfire"
             path="/denuncias/[[user.uid]]">
         </firebase-query>
 
-       
-
+<paper-toast id="positiveToast"></paper-toast>
 
   </template>
 
@@ -138,10 +135,11 @@ formulario de entrada de denuncias de maltrato animal
 
       },
 
-      behaviors: [Polymer.AnimiliaBehavior],
+      behaviors: [Polymer.animiliaBehavior, Polymer.toastBehavior],
 
       listeners:{
          'saveButton.tap': 'save',
+         'positive-toast': 'positiveFeedback'
          
      },
 
@@ -182,6 +180,8 @@ formulario de entrada de denuncias de maltrato animal
         if(this.identificador,this.lugar,this.descripcion){
           // sube los datos de la denuncia a Firebase
           this.$.query.ref.push(this.complaint);
+
+          this.fire('positive-toast', 'denúncia guardada')
           // después de introducir los valores en los input se limpia el texto
           this.identificador = null;
           this.lugar = null;
